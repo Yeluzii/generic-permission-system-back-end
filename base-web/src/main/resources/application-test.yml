@@ -1,0 +1,44 @@
+# 端⼝号配置
+server:
+  port: 8089
+# 数据库连接配置
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/rbac?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    username: root
+    password: 123456
+# mybatis plus 配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      #配置 mybatis plus 在更新时只更新⾮空和⾮NULL的字段
+      update-strategy: not_empty
+
+# springdoc-openapi
+springdoc:
+  swagger-ui:
+    path:  /swagger-ui.html
+    tags-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group:  'default'
+      paths-to-match: '/**'
+      # 扫描 controller 包的路径
+      packages-to-scan:
+        - fun.ychen.web.sys_role.controller
+        - fun.ychen.web.special.controller
+
+# knife4j
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+  basic:
+    enable: true
+    username: admin
+    password: 123456
