@@ -3,6 +3,7 @@ package fun.ychen.web.sys_role.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import fun.ychen.web.sys_role.entity.SelectItem;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -12,6 +13,10 @@ import fun.ychen.utils.ResultUtils;
 import fun.ychen.web.sys_role.entity.RoleParm;
 import fun.ychen.web.sys_role.entity.SysRole;
 import fun.ychen.web.sys_role.service.SysRoleService;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @RequestMapping("/api/role")
 @RestController
@@ -57,5 +62,23 @@ public class SysRoleController {
         }
         IPage<SysRole> list = sysRoleService.page(page, query);
         return ResultUtils.success("查询成功", list);
+    }
+
+    // 角色下拉数据
+    @GetMapping("/selectList")
+    @Operation(summary = "角色下拉数据")
+    public ResultVo<?> selectList() {
+        List<SysRole> list = sysRoleService.list();
+        // 返回的值
+        List<SelectItem> selectItems = new ArrayList<>();
+        Optional.ofNullable(list).orElse(new ArrayList<>())
+                .forEach(item -> {
+                    SelectItem vo = new SelectItem();
+                    vo.setCheck(false);
+                    vo.setLabel(item.getRoleName());
+                    vo.setValue(item.getRoleId());
+                    selectItems.add(vo);
+                });
+        return ResultUtils.success("查询成功", selectItems);
     }
 }
