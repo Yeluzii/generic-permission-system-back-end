@@ -1,6 +1,7 @@
 package fun.ychen.web.sys_user.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import fun.ychen.result.ResultVo;
@@ -84,6 +85,19 @@ public class SysUserController {
                     roleList.add(item.getRoleId());
                 });
         return ResultUtils.success("查询成功!", roleList);
+    }
+
+    // 重置密码
+    @PostMapping("/resetPassword")
+    @Operation(summary = "重置密码")
+    public ResultVo<?> resetPassword(@RequestBody SysUser sysUser){
+        UpdateWrapper<SysUser> query = new UpdateWrapper<>();
+        query.lambda().eq(SysUser::getUserId, sysUser.getUserId())
+                .set(SysUser::getPassword, "666666");
+        if(sysUserService.update(query)){
+            return ResultUtils.success("密码重置成功!");
+        }
+        return ResultUtils.error("重置密码失败!");
     }
 
 }
