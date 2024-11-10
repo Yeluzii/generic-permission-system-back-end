@@ -8,16 +8,23 @@ import fun.ychen.utils.ResultUtils;
 import fun.ychen.web.sys_user.entity.SysUser;
 import fun.ychen.web.sys_user.entity.SysUserPage;
 import fun.ychen.web.sys_user.service.SysUserService;
+import fun.ychen.web.sys_user_role.entity.SysUserRole;
+import fun.ychen.web.sys_user_role.service.SysUserRoleService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @RequestMapping("/api/sysUser")
 @RestController
 @AllArgsConstructor
 public class SysUserController {
     private final SysUserService sysUserService;
+    private final SysUserRoleService sysUserRoleService;
 
     // 新增
     @PostMapping
@@ -61,6 +68,22 @@ public class SysUserController {
         // 查询列表
         IPage<SysUser> list = sysUserService.page(page, query);
         return ResultUtils.success("查询成功", list);
+    }
+
+    // 根据用户id查询用户的角色
+    @GetMapping("/getRoleList")
+    @Operation(summary = "根据用户id查询用户的角色")
+    public ResultVo<?> getRoleList(Long userId){
+        QueryWrapper<SysUserRole> query = new QueryWrapper<SysUserRole>();
+        query.lambda().eq(SysUserRole::getUserId, userId);
+        List<SysUserRole> list = sysUserRoleService.list(query);
+        // 角色id
+        List<Long> roleList = new ArrayList<>();
+        Optional.ofNullable(list).orElse(new ArrayList<>())
+                .forEach(item -> {
+                    roleList.add(item.getRoleId());
+                });
+        return ResultUtils.success("查询成功!", roleList);
     }
 
 }
