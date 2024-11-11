@@ -9,10 +9,7 @@ import fun.ychen.result.ResultVo;
 import fun.ychen.utils.ResultUtils;
 import fun.ychen.web.sys_menu.entity.AssignTreeParm;
 import fun.ychen.web.sys_menu.entity.AssignTreeVo;
-import fun.ychen.web.sys_user.entity.LoginParm;
-import fun.ychen.web.sys_user.entity.LoginVo;
-import fun.ychen.web.sys_user.entity.SysUser;
-import fun.ychen.web.sys_user.entity.SysUserPage;
+import fun.ychen.web.sys_user.entity.*;
 import fun.ychen.web.sys_user.service.SysUserService;
 import fun.ychen.web.sys_user_role.entity.SysUserRole;
 import fun.ychen.web.sys_user_role.service.SysUserRoleService;
@@ -56,7 +53,7 @@ public class SysUserController {
         return ResultUtils.success("编辑成功!");
     }
 
-     // 删除
+    // 删除
     @Operation(summary = "删除用户")
     @DeleteMapping("/{userId}")
     public ResultVo<?> delete(@PathVariable("userId") Long userId) {
@@ -69,13 +66,13 @@ public class SysUserController {
     @Operation(summary = "用户列表")
     public ResultVo<?> list(@RequestBody SysUserPage parm) {
         // 构造分页对象
-        IPage<SysUser> page = new Page<>(parm.getCurrentPage(),parm.getPageSize());
+        IPage<SysUser> page = new Page<>(parm.getCurrentPage(), parm.getPageSize());
         // 构造查询条件
         QueryWrapper<SysUser> query = new QueryWrapper<>();
-        if(StringUtils.isNotEmpty(parm.getNickName())){
+        if (StringUtils.isNotEmpty(parm.getNickName())) {
             query.lambda().like(SysUser::getNickName, parm.getNickName());
         }
-        if (StringUtils.isNotEmpty(parm.getPhone())){
+        if (StringUtils.isNotEmpty(parm.getPhone())) {
             query.lambda().like(SysUser::getPhone, parm.getPhone());
         }
         query.lambda().orderByDesc(SysUser::getCreateTime);
@@ -87,7 +84,7 @@ public class SysUserController {
     // 根据用户id查询用户的角色
     @GetMapping("/getRoleList")
     @Operation(summary = "根据用户id查询用户的角色")
-    public ResultVo<?> getRoleList(Long userId){
+    public ResultVo<?> getRoleList(Long userId) {
         QueryWrapper<SysUserRole> query = new QueryWrapper<SysUserRole>();
         query.lambda().eq(SysUserRole::getUserId, userId);
         List<SysUserRole> list = sysUserRoleService.list(query);
@@ -103,11 +100,11 @@ public class SysUserController {
     // 重置密码
     @PostMapping("/resetPassword")
     @Operation(summary = "重置密码")
-    public ResultVo<?> resetPassword(@RequestBody SysUser sysUser){
+    public ResultVo<?> resetPassword(@RequestBody SysUser sysUser) {
         UpdateWrapper<SysUser> query = new UpdateWrapper<>();
         query.lambda().eq(SysUser::getUserId, sysUser.getUserId())
                 .set(SysUser::getPassword, "666666");
-        if(sysUserService.update(query)){
+        if (sysUserService.update(query)) {
             return ResultUtils.success("密码重置成功!");
         }
         return ResultUtils.error("重置密码失败!");
@@ -122,7 +119,7 @@ public class SysUserController {
         // 生成验证码
         String text = defaultKaptcha.createText();
         // 存放到 session
-        session.setAttribute("code",text);
+        session.setAttribute("code", text);
         // 生成图片，转换为 base64
         BufferedImage bufferedImage = defaultKaptcha.createImage(text);
         ByteArrayOutputStream outputStream = null;
@@ -130,16 +127,16 @@ public class SysUserController {
             outputStream = new ByteArrayOutputStream();
             ImageIO.write(bufferedImage, "jpg", outputStream);
             String base64 = Base64.encodeBase64String(outputStream.toByteArray());
-            String captchaBase64 = "data:image/jpeg;base64," + base64.replaceAll("\r\n","");
-            return (ResultVo<?>) new ResultVo<>("生成成功",200,captchaBase64);
-        }catch (IOException e) {
+            String captchaBase64 = "data:image/jpeg;base64," + base64.replaceAll("\r\n", "");
+            return (ResultVo<?>) new ResultVo<>("生成成功", 200, captchaBase64);
+        } catch (IOException e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             try {
-                if (outputStream != null){
+                if (outputStream != null) {
                     outputStream.close();
                 }
-            }catch (IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -149,18 +146,18 @@ public class SysUserController {
     // 登录
     @PostMapping("/login")
     @Operation(summary = "登录")
-    public ResultVo<?> login(HttpServletRequest request, @RequestBody LoginParm parm){
+    public ResultVo<?> login(HttpServletRequest request, @RequestBody LoginParm parm) {
         // 获取前端传递过来的 code
-        String code = parm .getCode();
+        String code = parm.getCode();
         // 获取 session
         HttpSession session = request.getSession();
         // 获取 session 里的 code
         String code1 = (String) session.getAttribute("code");
-        if (StringUtils.isEmpty(code1)){
+        if (StringUtils.isEmpty(code1)) {
             return ResultUtils.error("验证码过期");
         }
         // 判断前端传递进来的 code 和 session 里面的是否相等
-        if(!code1.equals(code)){
+        if (!code1.equals(code)) {
             return ResultUtils.error("验证码不正确！");
         }
         // 查询用户信息
@@ -168,22 +165,40 @@ public class SysUserController {
         query.lambda().eq(SysUser::getUsername, parm.getUsername())
                 .eq(SysUser::getPassword, parm.getPassword());
         SysUser one = sysUserService.getOne(query);
-        if (one == null){
+        if (one == null) {
             return ResultUtils.error("用户名或密码不正确！");
         }
         // 返回用户信息和 token
         LoginVo vo = new LoginVo();
         vo.setUserId(one.getUserId());
         vo.setNickName(one.getNickName());
-        return ResultUtils.success("登录成功",vo);
+        return ResultUtils.success("登录成功", vo);
     }
 
     // 查询菜单树
     @PostMapping("/tree")
     @Operation(summary = "查询菜单树")
-    public ResultVo<?> getAssignTree(@RequestBody AssignTreeParm parm){
+    public ResultVo<?> getAssignTree(@RequestBody AssignTreeParm parm) {
         AssignTreeVo assignTree = sysUserService.getAssignTree(parm);
         return ResultUtils.success("查询成功", assignTree);
+    }
+
+    // 修改密码
+    @PostMapping("/updatePassword")
+    @Operation(summary = "修改密码")
+    public ResultVo<?> updatePassword(@RequestBody UpdatePasswordParm parm) {
+        SysUser user = sysUserService.getById(parm.getUserId());
+        if (!parm.getOldPassword().equals(user.getPassword())) {
+            return ResultUtils.error("原密码不正确!");
+        }
+        // 更新条件
+        UpdateWrapper<SysUser> query = new UpdateWrapper<>();
+        query.lambda().set(SysUser::getPassword, parm.getPassword())
+                .eq(SysUser::getUserId, parm.getUserId());
+        if (sysUserService.update(query)) {
+            return ResultUtils.success("密码修改成功!");
+        }
+        return ResultUtils.error("密码修改失败!");
     }
 
 }
