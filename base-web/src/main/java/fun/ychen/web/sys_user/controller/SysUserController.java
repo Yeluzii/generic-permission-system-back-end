@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.code.kaptcha.impl.DefaultKaptcha;
 import fun.ychen.result.ResultVo;
 import fun.ychen.utils.ResultUtils;
+import fun.ychen.web.sys_menu.entity.AssignTreeParm;
+import fun.ychen.web.sys_menu.entity.AssignTreeVo;
 import fun.ychen.web.sys_user.entity.LoginParm;
 import fun.ychen.web.sys_user.entity.LoginVo;
 import fun.ychen.web.sys_user.entity.SysUser;
@@ -174,6 +176,14 @@ public class SysUserController {
         vo.setUserId(one.getUserId());
         vo.setNickName(one.getNickName());
         return ResultUtils.success("登录成功",vo);
+    }
+
+    // 查询菜单树
+    @PostMapping("/tree")
+    @Operation(summary = "查询菜单树")
+    public ResultVo<?> getAssignTree(@RequestBody AssignTreeParm parm){
+        AssignTreeVo assignTree = sysUserService.getAssignTree(parm);
+        return ResultUtils.success("查询成功", assignTree);
     }
 
 }
