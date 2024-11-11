@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.code.kaptcha.impl.DefaultKaptcha;
+import fun.ychen.jwt.JwtUtils;
 import fun.ychen.result.ResultVo;
 import fun.ychen.utils.ResultUtils;
 import fun.ychen.web.sys_menu.entity.AssignTreeParm;
@@ -25,9 +26,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RequestMapping("/api/sysUser")
 @RestController
@@ -36,6 +35,7 @@ public class SysUserController {
     private final SysUserService sysUserService;
     private final SysUserRoleService sysUserRoleService;
     private final DefaultKaptcha defaultKaptcha;
+    private final JwtUtils jwtUtils;
 
     // 新增
     @PostMapping
@@ -172,6 +172,10 @@ public class SysUserController {
         LoginVo vo = new LoginVo();
         vo.setUserId(one.getUserId());
         vo.setNickName(one.getNickName());
+        // 生成 token
+        Map<String,String> map = new HashMap<>();
+        String token = jwtUtils.generateToken(map);
+        vo.setToken(token);
         return ResultUtils.success("登录成功", vo);
     }
 

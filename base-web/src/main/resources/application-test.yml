@@ -52,3 +52,12 @@ knife4j:
     enable: true
     username: admin
     password: 123456
+
+# jwt 配置
+jwt:
+  # 颁发者
+  issuer: ychen
+  # 密钥
+  secret: fun.ychen
+  # 60分钟过期
+  expiration: 60
