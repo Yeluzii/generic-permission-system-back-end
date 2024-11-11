@@ -61,6 +61,11 @@
             <artifactId>commons-lang3</artifactId>
         </dependency>
 
+<!--        图片验证码-->
+        <dependency>
+            <groupId>com.github.penggle</groupId>
+            <artifactId>kaptcha</artifactId>
+        </dependency>
 
     </dependencies>
 
