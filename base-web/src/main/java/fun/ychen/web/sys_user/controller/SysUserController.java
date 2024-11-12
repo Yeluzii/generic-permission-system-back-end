@@ -8,9 +8,7 @@ import com.google.code.kaptcha.impl.DefaultKaptcha;
 import fun.ychen.jwt.JwtUtils;
 import fun.ychen.result.ResultVo;
 import fun.ychen.utils.ResultUtils;
-import fun.ychen.web.sys_menu.entity.AssignTreeParm;
-import fun.ychen.web.sys_menu.entity.AssignTreeVo;
-import fun.ychen.web.sys_menu.entity.SysMenu;
+import fun.ychen.web.sys_menu.entity.*;
 import fun.ychen.web.sys_menu.service.SysMenuService;
 import fun.ychen.web.sys_user.entity.*;
 import fun.ychen.web.sys_user.service.SysUserService;
@@ -29,6 +27,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RequestMapping("/api/sysUser")
 @RestController
@@ -176,7 +175,7 @@ public class SysUserController {
         vo.setUserId(one.getUserId());
         vo.setNickName(one.getNickName());
         // 生成 token
-        Map<String,String> map = new HashMap<>();
+        Map<String, String> map = new HashMap<>();
         String token = jwtUtils.generateToken(map);
         vo.setToken(token);
         return ResultUtils.success("登录成功", vo);
@@ -216,10 +215,10 @@ public class SysUserController {
         SysUser user = sysUserService.getById(userId);
         List<SysMenu> menuList;
         // 判断是否是超级管理员
-        if (StringUtils.isNotEmpty(user.getIsAdmin()) && "1".equals(user.getIsAdmin())){
+        if (StringUtils.isNotEmpty(user.getIsAdmin()) && "1".equals(user.getIsAdmin())) {
             // 超级管理员，直接全部查询
             menuList = sysMenuService.list();
-        }else {
+        } else {
             menuList = sysMenuService.getMenuByUserId(user.getUserId());
         }
         // 获取菜单表的 code 字段
@@ -233,6 +232,29 @@ public class SysUserController {
         userInfo.setUserId(user.getUserId());
         userInfo.setPermissions(collect.toArray());
         return ResultUtils.success("查询成功", userInfo);
+    }
+
+    // 获取用户菜单信息
+    @GetMapping("/getMenuList")
+    @Operation(summary = "获取用户菜单信息")
+    public ResultVo<?> getMenuList(Long userId) {
+        // 获取用户的信息
+        SysUser user = sysUserService.getById(userId);
+        // 菜单数据
+        List<SysMenu> menuList = null;
+        // 判断是否是超级管理员
+        if (StringUtils.isNotEmpty(user.getIsAdmin()) && "1".equals(user.getIsAdmin())) {
+            menuList = sysMenuService.list();
+        } else {
+            menuList = sysMenuService.getMenuByUserId(userId);
+        }
+        // 过滤菜单数据，去掉按钮数据
+        List<SysMenu> collect = Optional.ofNullable(menuList).orElse(new ArrayList<>())
+                .stream()
+                .filter(item -> item != null && StringUtils.isNotEmpty(item.getType()) && !item.getType().equals("2")).collect(Collectors.toList());
+        // 组装路由数据
+        List<RouterVO> router = MakeMenuTree.makeRouter(collect, 0L);
+        return ResultUtils.success("查询成功", router);
     }
 
 }

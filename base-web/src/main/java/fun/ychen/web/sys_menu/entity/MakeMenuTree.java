@@ -27,4 +27,55 @@ public class MakeMenuTree {
                 });
         return list;
     }
+
+    // 构造路由数据
+    public static List<RouterVO> makeRouter(List<SysMenu> menuList, Long pid) {
+        // 构建存放路由数据的容器
+        List<RouterVO> list = new ArrayList<>();
+        Optional.ofNullable(menuList).orElse(new ArrayList<>())
+                .stream()
+                .filter(item -> item != null && item.getParentId().equals(pid))
+                .forEach(item -> {
+                    RouterVO router = new RouterVO();
+                    router.setName(item.getName());
+                    router.setPath(item.getPath());
+                    // 设置 children 递归调用：自己调用自己
+                    List<RouterVO> children = makeRouter(menuList, item.getMenuId());
+                    router.setChildren(children);
+                    // 如果是上级是0，那么他的 component 是 Layout
+                    if (item.getParentId() == 0L) {
+                        router.setComponent("Layout");
+                        // 判断该数据是目录还是菜单
+                        // 如果以及菜单是 菜单类型，单独处理
+                        if ("1".equals(item.getType())) {
+                            router.setRedirect(item.getPath());
+                            // 菜单需要设置 children
+                            List<RouterVO> listChild = new ArrayList<>();
+                            RouterVO child = new RouterVO();
+                            child.setName(item.getName());
+                            child.setPath(item.getPath());
+                            child.setComponent(item.getUrl());
+                            child.setMeta(child.new Meta(
+                                    item.getTitle(),
+                                    item.getIcon(),
+                                    item.getCode().split(",")
+                            ));
+                            listChild.add(child);
+                            router.setChildren(listChild);
+                            router.setPath(item.getPath() + "parent");
+                            router.setName(item.getName() + "parent");
+                        }
+                    } else {
+                        router.setComponent(item.getUrl());
+                    }
+                    router.setMeta(router.new Meta(
+                            item.getTitle(),
+                            item.getIcon(),
+                            item.getCode().split(",")
+                    ));
+                    list.add(router);
+                });
+        return list;
+    }
+
 }
